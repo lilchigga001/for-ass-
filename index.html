@@ -1,0 +1,236 @@
+<index.html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Letter for You</title>
+    <style>
+        :root {
+            --primary-color: #ff69b4; /* Pink */
+            --secondary-color: #4169e1; /* Blue */
+            --accent-color: #9370db; /* Purple */
+            --bg-color: #f0f8ff; /* Light blue background */
+            --text-color: #333;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, var(--bg-color), var(--secondary-color));
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        header {
+            text-align: center;
+            padding: 50px 20px;
+            animation: fadeIn 2s ease-in;
+        }
+        h1 {
+            font-size: 3em;
+            color: var(--primary-color);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .section {
+            padding: 50px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .card h3 {
+            color: var(--secondary-color);
+        }
+        #message-bottle {
+            text-align: center;
+            margin: 20px 0;
+        }
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: var(--accent-color);
+        }
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            text-align: center;
+        }
+        #gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .gallery-item {
+            width: 200px;
+            height: 200px;
+            margin: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        .gallery-item:hover {
+            transform: scale(1.1);
+        }
+        #cta {
+            text-align: center;
+            padding: 50px 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin: 10px 0;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @media (max-width: 768px) {
+            h1 { font-size: 2em; }
+            .section { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <header>
+        <h1 id="floating-text">I love you and I'm sorry for being a pain in the ass.</h1>
+    </header>
+    <section class="section" id="memories">
+        <div class="card">
+            <h3>Shared Memories</h3>
+            <p>Remember our first date at the park? Here's a 3D scene to relive it.</p>
+            <div id="3d-model"></div> <!-- 3D model placeholder -->
+        </div>
+        <div class="card">
+            <h3>Favorite Quotes</h3>
+            <p>"You make my heart skip a beat." - Our inside joke.</p>
+        </div>
+        <div class="card">
+            <h3>Inside Jokes</h3>
+            <p>That time I spilled coffee on your shirt... sorry again!</p>
+        </div>
+    </section>
+    <div id="message-bottle">
+        <button onclick="showMessage()">Click the Message in a Bottle</button>
+    </div>
+    <section class="section" id="gallery">
+        <h2>Our Moments</h2>
+        <div class="gallery-item"><img src="https://via.placeholder.com/200" alt="Memory 1"></div>
+        <div class="gallery-item"><video width="200" controls><source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"></video></div>
+        <!-- Add more images/videos here -->
+    </section>
+    <section id="cta">
+        <h2>Share Your Thoughts</h2>
+        <textarea placeholder="Tell me how you feel..."></textarea>
+        <button>Send</button>
+    </section>
+    <div id="modal">
+        <div id="modal-content">
+            <p>Personalized Apology: I'm sorry for [specific thing]. I love you more than words can say.</p>
+            <button onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Three.js setup for dynamic background and 3D elements
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.position.z = 5;
+
+        // Particle background
+        const particles = new THREE.Group();
+        for (let i = 0; i < 100; i++) {
+            const geometry = new THREE.SphereGeometry(0.05, 8, 8);
+            const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+            const particle = new THREE.Mesh(geometry, material);
+            particle.position.set((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
+            particles.add(particle);
+        }
+        scene.add(particles);
+
+        // 3D Heart model for memories section
+        const heartGeometry = new THREE.TorusGeometry(1, 0.4, 16, 100);
+        const heartMaterial = new THREE.MeshBasicMaterial({ color: 0xff69b4 });
+        const heart = new THREE.Mesh(heartGeometry, heartMaterial);
+        heart.position.set(0, 0, 0);
+        scene.add(heart);
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.x += 0.01;
+            particles.rotation.y += 0.01;
+            heart.rotation.y += 0.02;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Floating text animation
+        const text = document.getElementById('floating-text');
+        let yPos = 0;
+        setInterval(() => {
+            yPos += 0.5;
+            text.style.transform = `translateY(${Math.sin(yPos * 0.01) * 10}px)`;
+        }, 16);
+
+        // Modal functions
+        function showMessage() {
+            document.getElementById('modal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Responsive resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
